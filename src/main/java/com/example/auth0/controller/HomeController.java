@@ -8,29 +8,18 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Controller
+@RestController
 public class HomeController {
 
     @GetMapping(value = "/")
-    @ResponseBody
-    public String home(HttpServletRequest request, HttpServletResponse response, final Authentication authentication) throws IOException {
-
-        if (authentication != null && authentication instanceof UsernamePasswordAuthenticationToken) {
-            UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
-
-            DecodedJWT jwt = JWT.decode(token.getCredentials().toString());
-            String email = jwt.getClaims().get("email").asString();
-
-            return "Welcome, " + email + "!";
-        } else {
-            response.sendRedirect("http://localhost:8080/login");
-            return null;
-        }
+    public String home() {
+        return "hello";
     }
 
 }

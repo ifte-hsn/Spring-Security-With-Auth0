@@ -1,15 +1,18 @@
-package com.example.auth0;
+package com.example.auth0.config;
 
 import com.auth0.AuthenticationController;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
 import com.example.auth0.controller.LogoutController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,25 +20,21 @@ import java.io.UnsupportedEncodingException;
 
 @Configuration
 @EnableWebSecurity
-public class AuthConfig {
+public class SecurityConfig {
 
-    @Value(value = "${com.auth0.domain}")
+    @Value(value = "${auth0.domain}")
     private String domain;
 
-    @Value(value = "${com.auth0.clientId}")
+    @Value(value = "${auth0.clientId}")
     private String clientId;
 
-    @Value(value = "${com.auth0.clientSecret}")
+    @Value(value = "${auth0.clientSecret}")
     private String clientSecret;
 
-    @Value(value = "${com.auth0.managementApi.clientId}")
-    private String managementApiClientId;
+    @Autowired
+    JwtAuthenticationFilter jwtAuthFilter;
 
-    @Value(value = "${com.auth0.managementApi.clientSecret}")
-    private String managementApiClientSecret;
 
-    @Value(value = "${com.auth0.managementApi.grantType}")
-    private String grantType;
 
     @Bean
     public LogoutSuccessHandler logoutSuccessHandler() {
@@ -52,10 +51,11 @@ public class AuthConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http.csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/callback", "/login", "/")
+                .antMatchers("/callback", "/login")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
@@ -65,7 +65,12 @@ public class AuthConfig {
                 .and()
                 .logout()
                 .logoutSuccessHandler(logoutSuccessHandler())
-                .permitAll();
+                .permitAll()
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -75,34 +80,6 @@ public class AuthConfig {
 
     public String getClientId() {
         return clientId;
-    }
-
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    public String getManagementApiClientId() {
-        return managementApiClientId;
-    }
-
-    public String getManagementApiClientSecret() {
-        return managementApiClientSecret;
-    }
-
-    public String getGrantType() {
-        return grantType;
-    }
-
-    public String getUserInfoUrl() {
-        return "https://" + getDomain() + "/userinfo";
-    }
-
-    public String getUsersUrl() {
-        return "https://" + getDomain() + "/api/v2/users";
-    }
-
-    public String getUsersByEmailUrl() {
-        return "https://" + getDomain() + "/api/v2/users-by-email?email=";
     }
 
     public String getLogoutUrl() {

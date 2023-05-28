@@ -1,7 +1,7 @@
 package com.example.auth0.controller;
 
 
-import com.example.auth0.AuthConfig;
+import com.example.auth0.config.SecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -15,7 +15,7 @@ import java.io.IOException;
 public class LogoutController implements LogoutSuccessHandler {
 
     @Autowired
-    private AuthConfig config;
+    private SecurityConfig config;
 
     @Override
     public void onLogoutSuccess(HttpServletRequest req, HttpServletResponse res, Authentication authentication) {

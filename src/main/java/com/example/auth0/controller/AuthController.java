@@ -6,12 +6,16 @@ import com.auth0.Tokens;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.auth0.config.SecurityConfig;
+import com.example.auth0.domain.User;
+import com.example.auth0.service.UserDetailServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +38,12 @@ public class AuthController {
     @Value(value = "${app.redirectUri}")
     private String redirectUri;
 
+    @Autowired
+    JwtDecoder jwtDecoder;
+
+    @Autowired
+    UserDetailServiceImpl userDetailService;
+
     @GetMapping(value = "/login")
     protected void login(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String redirectUri = config.getContextPath(request) + "/callback";
@@ -47,20 +57,40 @@ public class AuthController {
     public void callback(HttpServletRequest request, HttpServletResponse response) throws IOException, IdentityVerificationException {
         Tokens tokens = authenticationController.handle(request, response);
 
-        DecodedJWT jwt = JWT.decode(tokens.getIdToken());
+//
+        Jwt jwt = null;
+        try {
+            // Validate token
+            jwt = jwtDecoder.decode(tokens.getIdToken());
 
-        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("USER"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                jwt.getSubject(), jwt.getToken(), authorities
-        );
 
-        authToken.setDetails(
-                new WebAuthenticationDetailsSource().buildDetails(request)
-        );
-        SecurityContextHolder.getContext().setAuthentication(authToken);
+        String email = jwt.getClaim("email");
 
-        response.sendRedirect(redirectUri+"?token="+jwt.getToken());
+        if (email != null) {
+            User userDetails = (User) userDetailService.loadUserByUsername(email);
+
+            if(userDetails == null) {
+                response.sendRedirect("/login");
+                return;
+            }
+
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()
+            );
+
+            authToken.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request)
+            );
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+            response.sendRedirect(redirectUri+"?token="+tokens.getIdToken());
+            return;
+        }
+
+        response.sendRedirect("/login");
     }
 
 }

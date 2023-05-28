@@ -2,11 +2,19 @@ auth0:
   domain: dev-yl8vz4jyvmwrvnlx.us.auth0.com
   clientId: Pl4GOXvHgtKiQh1yIQwsOXrFHUoixS5A
   clientSecret: TxGIu3g6FeKyAMaVTenIjsL_1wygLIBWjHwfHZFao8psy8spRwQxYFBa3XpE95Te
+  audience: Pl4GOXvHgtKiQh1yIQwsOXrFHUoixS5A
 
 app:
   redirectUri: http://localhost:3000/oauth2/redirect
 
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Replace with the domain of your Auth0 tenant.
+          # Note the trailing slash is important!
+          issuer-uri: https://dev-yl8vz4jyvmwrvnlx.us.auth0.com/
   jpa:
     hibernate:
       ddl-auto: update

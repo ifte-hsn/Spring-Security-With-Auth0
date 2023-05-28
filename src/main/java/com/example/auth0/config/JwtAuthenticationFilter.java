@@ -7,6 +7,7 @@ import com.example.auth0.service.UserDetailServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,11 +18,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-
+import org.springframework.security.oauth2.jwt.Jwt;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     UserDetailServiceImpl userDetailService;
+
+    @Autowired
+    JwtDecoder jwtDecoder;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -35,15 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwtToken = authHeader.substring(7);
-        DecodedJWT jwt = null;
+
+        Jwt jwt = null;
         try {
-            jwt = JWT.decode(jwtToken);
+            jwt = jwtDecoder.decode(jwtToken);
         } catch (Exception e) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String email = jwt.getClaims().get("email").asString();
+        String email = jwt.getClaim("email");
 
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {

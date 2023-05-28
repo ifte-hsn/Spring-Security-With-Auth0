@@ -3,7 +3,7 @@ package com.example.auth0.controller;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +20,8 @@ public class HomeController {
     @ResponseBody
     public String home(HttpServletRequest request, HttpServletResponse response, final Authentication authentication) throws IOException {
 
-        if (authentication != null && authentication instanceof TestingAuthenticationToken) {
-            TestingAuthenticationToken token = (TestingAuthenticationToken) authentication;
+        if (authentication != null && authentication instanceof UsernamePasswordAuthenticationToken) {
+            UsernamePasswordAuthenticationToken token = (UsernamePasswordAuthenticationToken) authentication;
 
             DecodedJWT jwt = JWT.decode(token.getCredentials().toString());
             String email = jwt.getClaims().get("email").asString();

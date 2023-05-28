@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.RestTemplate;
@@ -20,7 +23,9 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 @Controller
 public class AuthController {
@@ -47,10 +52,18 @@ public class AuthController {
         Tokens tokens = authenticationController.handle(request, response);
 
         DecodedJWT jwt = JWT.decode(tokens.getIdToken());
-        TestingAuthenticationToken authToken2 = new TestingAuthenticationToken(jwt.getSubject(), jwt.getToken());
-        authToken2.setAuthenticated(true);
 
-        SecurityContextHolder.getContext().setAuthentication(authToken2);
+        Collection<? extends GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("USER"));
+
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                jwt.getSubject(), jwt.getToken(), authorities
+        );
+
+        authToken.setDetails(
+                new WebAuthenticationDetailsSource().buildDetails(request)
+        );
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
         response.sendRedirect(config.getContextPath(request) + "/");
     }
 

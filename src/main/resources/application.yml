@@ -1,8 +1,8 @@
 auth0:
-  domain: dev-yl8vz4jyvmwrvnlx.us.auth0.com
-  clientId: Pl4GOXvHgtKiQh1yIQwsOXrFHUoixS5A
-  clientSecret: TxGIu3g6FeKyAMaVTenIjsL_1wygLIBWjHwfHZFao8psy8spRwQxYFBa3XpE95Te
-  audience: Pl4GOXvHgtKiQh1yIQwsOXrFHUoixS5A
+  domain: DOMAIN
+  clientId: CLIENT_ID
+  clientSecret: CLIENT_SECRET
+  audience: AUDIENCE
 
 app:
   redirectUri: http://localhost:3000/oauth2/redirect
